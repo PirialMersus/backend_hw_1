@@ -1,4 +1,4 @@
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 
 enum AvailableResolutions {
   P144 = 'P144',
@@ -35,18 +35,18 @@ type ErrorType = {
 }
 
 let videos: VideoType[] = [
-  // {
-  //   id: 0,
-  //   title: "string",
-  //   author: "string",
-  //   canBeDownloaded: true,
-  //   minAgeRestriction: null,
-  //   createdAt: "2023-07-17T15:50:40.497Z",
-  //   publicationDate: "2023-07-17T15:50:40.497Z",
-  //   availableResolutions: [
-  //     AvailableResolutions.P144
-  //   ]
-  // }
+  {
+    id: 110,
+    title: "string",
+    author: "string",
+    canBeDownloaded: true,
+    minAgeRestriction: null,
+    createdAt: "2023-07-17T15:50:40.497Z",
+    publicationDate: "2023-07-17T15:50:40.497Z",
+    availableResolutions: [
+      AvailableResolutions.P144
+    ]
+  }
 ]
 
 const app = express()
@@ -69,6 +69,7 @@ app.get('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) =
 
   res.sendStatus(404)
 })
+
 app.delete('/testing/all-data', (req: Request, res: Response) => {
   videos.length = 0
 
@@ -93,7 +94,6 @@ app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response
   res.sendStatus(404)
 })
 
-
 app.post('/videos', (req: RequestWithBody<{
   title: string,
   author: string,
@@ -102,14 +102,14 @@ app.post('/videos', (req: RequestWithBody<{
   let errors: ErrorType = {
     errorMessages: []
   }
-  let {title, author, availableResolutions} = req.body
+  let { title, author, availableResolutions } = req.body
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorMessages.push({message: 'Invalid title', field: 'title'})
+    errors.errorMessages.push({ message: 'Invalid title', field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorMessages.push({message: 'Invalid author', field: 'author'})
+    errors.errorMessages.push({ message: 'Invalid author', field: 'author' })
   }
   if (Array.isArray(availableResolutions)) {
     availableResolutions.map(r => {
@@ -143,12 +143,13 @@ app.post('/videos', (req: RequestWithBody<{
 
   res.status(201).send(newVideo)
 })
+
 app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody<{
   title: string,
   author: string,
   availableResolutions: AvailableResolutions[],
   canBeDownloaded: boolean,
-  minAgeRestriction: string,
+  minAgeRestriction: string | number,
   publicationDate: string,
 }>, res: Response) => {
   let errors: ErrorType = {
@@ -156,25 +157,26 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   }
   const id = +req.params.id
   console.log('id ', id)
-  let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
+  console.log('req.body ', req.body)
+  let { title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate } = req.body
   const availableResolutionsExists = Array.isArray(availableResolutions)
-  const minAgeRestrictionValue = minAgeRestriction?.trim() ?? '';
+  const minAgeRestrictionValue = typeof minAgeRestriction === 'string' ? minAgeRestriction.trim() : minAgeRestriction.toString().trim();
 
   if (publicationDate && isNaN(Date.parse(publicationDate))) {
-    errors.errorMessages.push({message: 'Invalid publicationDate', field: 'publicationDate'});
+    errors.errorMessages.push({ message: 'Invalid publicationDate', field: 'publicationDate' });
   }
-  console.log('minAgeRestriction ', minAgeRestriction)
+  console.log('minAgeRestriction ', minAgeRestrictionValue)
 
   if (!!minAgeRestrictionValue && (isNaN(+minAgeRestrictionValue) || minAgeRestrictionValue.length < 1 || minAgeRestrictionValue.length > 18)) {
-    errors.errorMessages.push({message: 'Invalid minAgeRestriction', field: 'minAgeRestriction'});
+    errors.errorMessages.push({ message: 'Invalid minAgeRestriction', field: 'minAgeRestriction' });
   }
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorMessages.push({message: 'Invalid title', field: 'title'})
+    errors.errorMessages.push({ message: 'Invalid title', field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorMessages.push({message: 'Invalid author', field: 'author'})
+    errors.errorMessages.push({ message: 'Invalid author', field: 'author' })
   }
   if (availableResolutionsExists) {
     availableResolutions.map(r => {
