@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, {Request, Response} from "express";
 
 enum AvailableResolutions {
   P144 = 'P144',
@@ -102,15 +102,14 @@ app.post('/videos', (req: RequestWithBody<{
   let errors: ErrorType = {
     errorsMessages: []
   }
-  let { title, author, availableResolutions } = req.body
-  console.log('req.body', req.body)
+  let {title, author, availableResolutions} = req.body
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorsMessages.push({ message: 'Invalid title', field: 'title' })
+    errors.errorsMessages.push({message: 'Invalid title', field: 'title'})
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorsMessages.push({ message: 'Invalid author', field: 'author' })
+    errors.errorsMessages.push({message: 'Invalid author', field: 'author'})
   }
   if (Array.isArray(availableResolutions)) {
     availableResolutions.map(r => {
@@ -149,7 +148,7 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   title: string,
   author: string,
   availableResolutions: AvailableResolutions[],
-  canBeDownloaded: boolean,
+  canBeDownloaded: string | boolean | undefined,
   minAgeRestriction: string | number,
   publicationDate: string,
 }>, res: Response) => {
@@ -157,27 +156,29 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
     errorsMessages: []
   }
   const id = +req.params.id
-  console.log('id ', id)
-  console.log('req.body ', req.body)
-  let { title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate } = req.body
+  let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
+  console.log('canBeDownloaded', canBeDownloaded)
+  console.log('canBeDownloaded', typeof canBeDownloaded)
   const availableResolutionsExists = Array.isArray(availableResolutions)
   const minAgeRestrictionValue = typeof minAgeRestriction === 'string' ? minAgeRestriction.trim() : minAgeRestriction.toString().trim();
 
   if (publicationDate && isNaN(Date.parse(publicationDate))) {
-    errors.errorsMessages.push({ message: 'Invalid publicationDate', field: 'publicationDate' });
+    errors.errorsMessages.push({message: 'Invalid publicationDate', field: 'publicationDate'});
   }
-  console.log('minAgeRestriction ', minAgeRestrictionValue)
+  if (canBeDownloaded && (canBeDownloaded !== 'true' || canBeDownloaded !== 'false')) {
+    errors.errorsMessages.push({message: 'Invalid canBeDownloaded', field: 'canBeDownloaded'});
+  }
 
   if (!!minAgeRestrictionValue && (isNaN(+minAgeRestrictionValue) || minAgeRestrictionValue.length < 1 || minAgeRestrictionValue.length > 18)) {
-    errors.errorsMessages.push({ message: 'Invalid minAgeRestriction', field: 'minAgeRestriction' });
+    errors.errorsMessages.push({message: 'Invalid minAgeRestriction', field: 'minAgeRestriction'});
   }
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorsMessages.push({ message: 'Invalid title', field: 'title' })
+    errors.errorsMessages.push({message: 'Invalid title', field: 'title'})
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorsMessages.push({ message: 'Invalid author', field: 'author' })
+    errors.errorsMessages.push({message: 'Invalid author', field: 'author'})
   }
   if (availableResolutionsExists) {
     availableResolutions.map(r => {
@@ -195,7 +196,7 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   const foundVideo = videos.find(video => video.id === id)
   if (foundVideo) {
     if (canBeDownloaded) {
-      foundVideo.canBeDownloaded = canBeDownloaded
+      foundVideo.canBeDownloaded = canBeDownloaded ? Boolean(canBeDownloaded) : false
     }
     if (minAgeRestriction) {
       foundVideo.minAgeRestriction = +minAgeRestriction || null
