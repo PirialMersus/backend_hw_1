@@ -77,7 +77,7 @@ app.delete('/testing/all-data', (req: Request, res: Response) => {
 })
 
 app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) => {
- const id = +req.params.id
+  const id = +req.params.id
   let foundVideoExist = false
 
   const filteredVideos = videos.filter(video => {
@@ -157,14 +157,13 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   }
   const id = +req.params.id
   let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
-  console.log('canBeDownloaded', canBeDownloaded)
-  console.log('canBeDownloaded', typeof canBeDownloaded)
   const availableResolutionsExists = Array.isArray(availableResolutions)
-
-  if (publicationDate && isNaN(Date.parse(publicationDate))) {
+  const date = new Date(publicationDate).toISOString()
+  if (publicationDate !== 'undefined' && date !== publicationDate) {
     errors.errorsMessages.push({message: 'Invalid publicationDate', field: 'publicationDate'});
   }
-  if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean" ) {
+
+  if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
     errors.errorsMessages.push({message: 'Invalid canBeDownloaded', field: 'canBeDownloaded'});
   }
 
