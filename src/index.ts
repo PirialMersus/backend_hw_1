@@ -77,7 +77,7 @@ app.delete('/testing/all-data', (req: Request, res: Response) => {
 })
 
 app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) => {
-  const id = +req.params.id
+ const id = +req.params.id
   let foundVideoExist = false
 
   const filteredVideos = videos.filter(video => {
@@ -148,8 +148,8 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   title: string,
   author: string,
   availableResolutions: AvailableResolutions[],
-  canBeDownloaded: string | boolean | undefined,
-  minAgeRestriction: string | number,
+  canBeDownloaded: boolean,
+  minAgeRestriction: number,
   publicationDate: string,
 }>, res: Response) => {
   let errors: ErrorType = {
@@ -160,16 +160,15 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   console.log('canBeDownloaded', canBeDownloaded)
   console.log('canBeDownloaded', typeof canBeDownloaded)
   const availableResolutionsExists = Array.isArray(availableResolutions)
-  const minAgeRestrictionValue = typeof minAgeRestriction === 'string' ? minAgeRestriction.trim() : minAgeRestriction.toString().trim();
 
   if (publicationDate && isNaN(Date.parse(publicationDate))) {
     errors.errorsMessages.push({message: 'Invalid publicationDate', field: 'publicationDate'});
   }
-  if (canBeDownloaded && (canBeDownloaded !== 'true' || canBeDownloaded !== 'false')) {
+  if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean" ) {
     errors.errorsMessages.push({message: 'Invalid canBeDownloaded', field: 'canBeDownloaded'});
   }
 
-  if (!!minAgeRestrictionValue && (isNaN(+minAgeRestrictionValue) || minAgeRestrictionValue.length < 1 || minAgeRestrictionValue.length > 18)) {
+  if (!!minAgeRestriction && (isNaN(+minAgeRestriction) || minAgeRestriction < 1 || minAgeRestriction > 18)) {
     errors.errorsMessages.push({message: 'Invalid minAgeRestriction', field: 'minAgeRestriction'});
   }
 
@@ -205,7 +204,6 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
       foundVideo.availableResolutions = availableResolutions || null
     }
     foundVideo.title = title;
-    foundVideo.minAgeRestriction = +minAgeRestriction || null;
     foundVideo.author = author;
     foundVideo.publicationDate = publicationDate;
     res.sendStatus(204);
