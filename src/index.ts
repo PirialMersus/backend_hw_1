@@ -31,7 +31,7 @@ type ErrorMessageType = {
 }
 
 type ErrorType = {
-  errorMessages: ErrorMessageType[]
+  errorsMessages: ErrorMessageType[]
 }
 
 let videos: VideoType[] = [
@@ -100,21 +100,21 @@ app.post('/videos', (req: RequestWithBody<{
   availableResolutions: AvailableResolutions[]
 }>, res: Response) => {
   let errors: ErrorType = {
-    errorMessages: []
+    errorsMessages: []
   }
   let { title, author, availableResolutions } = req.body
   console.log('req.body', req.body)
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorMessages.push({ message: ['Invalid title'], field: 'title' })
+    errors.errorsMessages.push({ message: ['Invalid title'], field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorMessages.push({ message: 'Invalid author', field: 'author' })
+    errors.errorsMessages.push({ message: 'Invalid author', field: 'author' })
   }
   if (Array.isArray(availableResolutions)) {
     availableResolutions.map(r => {
-      !AvailableResolutions[r] && errors.errorMessages.push({
+      !AvailableResolutions[r] && errors.errorsMessages.push({
         message: 'Invalid availableResolutions',
         field: 'availableResolutions'
       })
@@ -122,7 +122,7 @@ app.post('/videos', (req: RequestWithBody<{
   } else {
     availableResolutions = []
   }
-  if (errors.errorMessages.length) {
+  if (errors.errorsMessages.length) {
     res.status(400).send(errors)
   }
   const createdAt = new Date()
@@ -154,7 +154,7 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   publicationDate: string,
 }>, res: Response) => {
   let errors: ErrorType = {
-    errorMessages: []
+    errorsMessages: []
   }
   const id = +req.params.id
   console.log('id ', id)
@@ -164,30 +164,30 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   const minAgeRestrictionValue = typeof minAgeRestriction === 'string' ? minAgeRestriction.trim() : minAgeRestriction.toString().trim();
 
   if (publicationDate && isNaN(Date.parse(publicationDate))) {
-    errors.errorMessages.push({ message: 'Invalid publicationDate', field: 'publicationDate' });
+    errors.errorsMessages.push({ message: 'Invalid publicationDate', field: 'publicationDate' });
   }
   console.log('minAgeRestriction ', minAgeRestrictionValue)
 
   if (!!minAgeRestrictionValue && (isNaN(+minAgeRestrictionValue) || minAgeRestrictionValue.length < 1 || minAgeRestrictionValue.length > 18)) {
-    errors.errorMessages.push({ message: 'Invalid minAgeRestriction', field: 'minAgeRestriction' });
+    errors.errorsMessages.push({ message: 'Invalid minAgeRestriction', field: 'minAgeRestriction' });
   }
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorMessages.push({ message: 'Invalid title', field: 'title' })
+    errors.errorsMessages.push({ message: 'Invalid title', field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
-    errors.errorMessages.push({ message: 'Invalid author', field: 'author' })
+    errors.errorsMessages.push({ message: 'Invalid author', field: 'author' })
   }
   if (availableResolutionsExists) {
     availableResolutions.map(r => {
-      !AvailableResolutions[r] && errors.errorMessages.push({
+      !AvailableResolutions[r] && errors.errorsMessages.push({
         message: 'Invalid availableResolutions',
         field: 'availableResolutions'
       })
     })
   }
-  if (errors.errorMessages.length) {
+  if (errors.errorsMessages.length) {
     res.status(400).send(errors)
     return;
   }
