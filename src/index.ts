@@ -26,7 +26,7 @@ type VideoType = {
 }
 
 type ErrorMessageType = {
-  message: string,
+  message: string | string[],
   field: string
 }
 
@@ -81,7 +81,7 @@ app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response
   let foundVideoExist = false
 
   const filteredVideos = videos.filter(video => {
-    if (video.id !== id) {
+    if (video.id === id) {
       foundVideoExist = true
     }
     return video.id !== id
@@ -103,9 +103,10 @@ app.post('/videos', (req: RequestWithBody<{
     errorMessages: []
   }
   let { title, author, availableResolutions } = req.body
+  console.log('req.body', req.body)
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorMessages.push({ message: 'Invalid title', field: 'title' })
+    errors.errorMessages.push({ message: ['Invalid title'], field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
