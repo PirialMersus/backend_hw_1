@@ -106,7 +106,7 @@ app.post('/videos', (req: RequestWithBody<{
   console.log('req.body', req.body)
 
   if (!title || !title.length || title.trim().length > 40) {
-    errors.errorsMessages.push({ message: ['Invalid title'], field: 'title' })
+    errors.errorsMessages.push({ message: 'Invalid title', field: 'title' })
   }
 
   if (!author || !author.length || author.trim().length > 20) {
