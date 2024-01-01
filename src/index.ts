@@ -65,7 +65,7 @@ app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response
     res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
     return
   }
-  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
+  res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
 })
 
 app.post('/videos', (req: RequestWithBody<{

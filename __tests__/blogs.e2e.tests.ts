@@ -109,6 +109,12 @@ describe('/course', () => {
       .expect(HTTP_STATUSES.NOT_FOUND_404)
   })
 
+  it(`correct status if delete not existing video`, async () => {
+    await request(app)
+      .delete(`/videos/-100`)
+      .expect(HTTP_STATUSES.NOT_FOUND_404)
+  })
+
   it(`should delete all videos`, async () => {
     await request(app)
       .delete('/testing/all-data')
