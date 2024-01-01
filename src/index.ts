@@ -1,44 +1,18 @@
 import express, {Request, Response} from "express";
-
-enum AvailableResolutions {
-  P144 = 'P144',
-  P240 = 'P240',
-  P360 = 'P360',
-  P480 = 'P480',
-  P720 = 'P720',
-  P1080 = 'P1080',
-  P1440 = 'P1440',
-  P2160 = 'P2160'
-}
+import {HTTP_STATUSES} from "./shared/http-statuses";
+import {ErrorType, VideoType} from "./types";
+import {AvailableResolutions} from "./constants";
 
 type RequestWithParams<P> = Request<P, {}, {}, {}>
 type RequestWithBody<B> = Request<{}, {}, B, {}>
 
-type VideoType = {
-  id: number,
-  title: string,
-  author: string,
-  canBeDownloaded: boolean,
-  minAgeRestriction: number | null,
-  createdAt: string,
-  publicationDate: string,
-  availableResolutions: AvailableResolutions[] | null,
-}
 
-type ErrorMessageType = {
-  message: string | string[],
-  field: string
-}
 
-type ErrorType = {
-  errorsMessages: ErrorMessageType[]
-}
-
-let videos: VideoType[] = [
+export let videos: VideoType[] = [
   {
     id: 110,
-    title: "string",
-    author: "string",
+    title: "some title",
+    author: "some author",
     canBeDownloaded: true,
     minAgeRestriction: null,
     createdAt: "2023-07-17T15:50:40.497Z",
@@ -49,13 +23,13 @@ let videos: VideoType[] = [
   }
 ]
 
-const app = express()
-const port = process.env.PORT || 3000
+export const app = express()
+const port = process.env.PORT || 3022
 
 app.use(express.json())
 
 app.get('/videos', (req: Request, res: Response) => {
-  res.send(videos)
+  res.send(videos).status(HTTP_STATUSES.OK_200)
 })
 
 app.get('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) => {
@@ -63,17 +37,17 @@ app.get('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) =
   const foundVideo = videos.find(video => video.id === id)
 
   if (foundVideo) {
-    res.send(foundVideo).status(204)
+    res.send(foundVideo).status(HTTP_STATUSES.NO_CONTENT_204)
     return
   }
 
-  res.sendStatus(404)
+  res.sendStatus(HTTP_STATUSES.NOT_FOUND_404)
 })
 
 app.delete('/testing/all-data', (req: Request, res: Response) => {
   videos.length = 0
 
-  res.sendStatus(204)
+  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
 })
 
 app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response) => {
@@ -88,10 +62,10 @@ app.delete('/videos/:id', (req: RequestWithParams<{ id: number }>, res: Response
   })
   if (foundVideoExist) {
     videos = filteredVideos
-    res.sendStatus(204)
+    res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
     return
   }
-  res.sendStatus(404)
+  res.sendStatus(HTTP_STATUSES.NO_CONTENT_204)
 })
 
 app.post('/videos', (req: RequestWithBody<{
@@ -122,8 +96,10 @@ app.post('/videos', (req: RequestWithBody<{
     availableResolutions = []
   }
   if (errors.errorsMessages.length) {
-    res.status(400).send(errors)
+    res.status(HTTP_STATUSES.BAD_REQUEST_400).send(errors)
+    return
   }
+
   const createdAt = new Date()
   const publicationAT = new Date()
   publicationAT.setDate(createdAt.getDate() + 1)
@@ -141,7 +117,7 @@ app.post('/videos', (req: RequestWithBody<{
 
   videos.push(newVideo)
 
-  res.status(201).send(newVideo)
+  res.status(HTTP_STATUSES.CREATED_201).send(newVideo)
 })
 
 app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody<{
@@ -151,18 +127,28 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
   canBeDownloaded: boolean,
   minAgeRestriction: number,
   publicationDate: string,
+  createdAt: string,
 }>, res: Response) => {
   let errors: ErrorType = {
     errorsMessages: []
   }
   const id = +req.params.id
-  let {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
+  const {
+    title,
+    author,
+    availableResolutions,
+    canBeDownloaded,
+    minAgeRestriction,
+    publicationDate,
+    // createdAt
+  } = req.body ?? {};
+
+
   const availableResolutionsExists = Array.isArray(availableResolutions)
-  const date = new Date(publicationDate).toISOString()
+  const date = publicationDate ? new Date(publicationDate).toISOString() : undefined
   if (publicationDate !== 'undefined' && date !== publicationDate) {
     errors.errorsMessages.push({message: 'Invalid publicationDate', field: 'publicationDate'});
   }
-
   if (typeof canBeDownloaded !== "undefined" && typeof canBeDownloaded !== "boolean") {
     errors.errorsMessages.push({message: 'Invalid canBeDownloaded', field: 'canBeDownloaded'});
   }
@@ -187,7 +173,7 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
     })
   }
   if (errors.errorsMessages.length) {
-    res.status(400).send(errors)
+    res.status(HTTP_STATUSES.BAD_REQUEST_400).send(errors)
     return;
   }
 
@@ -205,9 +191,9 @@ app.put('/videos/:id', (req: RequestWithParams<{ id: number }> & RequestWithBody
     foundVideo.title = title;
     foundVideo.author = author;
     foundVideo.publicationDate = publicationDate;
-    res.sendStatus(204);
+    res.sendStatus(HTTP_STATUSES.NO_CONTENT_204);
   } else {
-    res.sendStatus(404);
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404);
   }
 });
 
